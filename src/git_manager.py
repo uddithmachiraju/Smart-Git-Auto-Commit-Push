@@ -89,7 +89,7 @@ class GitManager:
     def generate_report(self):
         """Generate a detailed Git report."""
         os.makedirs("reports", exist_ok=True)
-        report_path = f"reports/git_report_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.txt"
+        report_path = f"reports/git_report_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt"
 
         with open(report_path, "w") as report:
             report.write("=" * 40 + "\n")
