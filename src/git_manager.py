@@ -121,5 +121,5 @@ if __name__ == "__main__":
 
     git_manager.add_to_staging()
 
-    git_manager.commit_and_push("Updated project", force = False)
+    git_manager.commit_and_push("Updated project", force = True)
     git_manager.generate_report()
