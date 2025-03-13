@@ -9,7 +9,7 @@ os.makedirs("logs", exist_ok=True)
 
 # Configure logging
 logging.basicConfig(
-    filename="logs/git.logs",
+    filename="logs/git.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
@@ -70,15 +70,18 @@ class GitManager:
         subprocess.run(["git", "add", file_pattern], check=True)
         logging.info(f"Staged files matching pattern: {file_pattern}")
 
-    def commit_and_push(self, message="Updated project"):
+    def commit_and_push(self, message="Updated project", force = False):
         """Commit and push changes."""
         try:
             subprocess.run(["git", "commit", "-m", message], check=True)
             logging.info(f"Committed changes with message: {message}")
 
             branch_name = self.config.get("branch_name", "main")
-            subprocess.run(["git", "push", "-u", "origin", branch_name], check=True)
-            logging.info(f"Pushed changes to remote repository on branch {branch_name}")
+            if not force:
+                subprocess.run(["git", "push", "-u", "origin", branch_name], check=True)
+            else:
+                subprocess.run(["git", "push", "-f", "origin", branch_name], check = True)
+                logging.info(f"Pushed changes to remote repository on branch {branch_name}")
 
         except subprocess.CalledProcessError as e:
             logging.error(f"Error in committing or pushing: {e}")
@@ -90,7 +93,7 @@ class GitManager:
 
         with open(report_path, "w") as report:
             report.write("=" * 40 + "\n")
-            report.write("      Git Report      \n")
+            report.write("              Git Report      \n")
             report.write(f"      Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}     \n")
             report.write("=" * 40 + "\n\n")
 
@@ -118,5 +121,5 @@ if __name__ == "__main__":
 
     git_manager.add_to_staging()
 
-    git_manager.commit_and_push("Updated project")
+    git_manager.commit_and_push("Updated project", force = True)
     git_manager.generate_report()
