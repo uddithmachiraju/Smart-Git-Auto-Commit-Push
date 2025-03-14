@@ -88,18 +88,29 @@ class GitManager:
 
     def generate_report(self):
         """Generate a detailed Git report."""
+
+        # Create a directory if doesn't exists 
         os.makedirs("reports", exist_ok=True)
         report_path = f"reports/git_report_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt"
 
+        # Write basic info to the report 
         with open(report_path, "w") as report:
             report.write("=" * 40 + "\n")
             report.write("              Git Report      \n")
-            report.write(f"      Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}     \n")
+            report.write(f"      Generated on :{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}     \n")
             report.write("=" * 40 + "\n\n")
 
+            # Get the last commit and data 
             last_commit = subprocess.run(["git", "log", "-1", "--pretty=format:%s"], capture_output=True, text=True).stdout
             last_commit_date = subprocess.run(["git", "log", "-1", "--pretty=format:%ci"], capture_output=True, text=True).stdout
+            
+            # Get the branch name
+            branch_name = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output = True, text = True).stdout.strip() 
+
+            # Get changed files 
             status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True).stdout
+
+            changed_files = [line[3:] for line in status.split("\n") if line]
 
             changes_detected = "Uncommitted Changes Detected" if status else "Up to date"
             repo_name = self.config.get('remote_url', 'Unknown').split("/")[-1].replace(".git", "")
@@ -111,6 +122,31 @@ class GitManager:
             report.write(f"Changes Pushed: {'No' if status else 'Yes'}\n")
             report.write(f"Status: {changes_detected}\n")
 
+            # If there are any changed files, list them and include their content
+            if changed_files:
+                report.write("=" * 50 + "\n")
+                report.write("Modified Files and Changes\n")
+                report.write("=" * 50 + "\n")
+                for file in changed_files:
+                    report.write(f"File Checked: {file}\n")
+                    report.write("-" * 70 + "\n")
+                    diff_output = subprocess.run(["git", "diff", "--unified=0", file], capture_output = True, text = True).stdout
+                    if diff_output:
+                        report.write(f"File: {file}\n")
+                        report.write("=" * 50 + "\n") 
+                        for line in diff_output.split("\n"):
+                            if line.startswith("+") and not line.startswith("+++"):  # Added lines
+                                report.write(f"{line}\n")
+                            elif line.startswith("-") and not line.startswith("---"):  # Deleted lines
+                                report.write(f"{line}\n")
+                            elif line.startswith("@@"):  # Section header for modified lines
+                                report.write(f"{line}\n") 
+                        report.write("\n" + "=" * 70 + "\n\n") 
+                    else:
+                        report.write("No content changes detected.\n")
+            else:
+                report.write("No files changes detected.\n") 
+
         logging.info(f"Git report saved at {report_path}")
 
 if __name__ == "__main__":
@@ -118,8 +154,6 @@ if __name__ == "__main__":
     git_manager.initialize_git()
     git_manager.add_remote_url()
     git_manager.create_branch()
-
-    git_manager.add_to_staging()
-
+    git_manager.add_to_staging(file_pattern = "src/git_manager.py") 
     git_manager.commit_and_push("Updated project", force = True)
     git_manager.generate_report()
