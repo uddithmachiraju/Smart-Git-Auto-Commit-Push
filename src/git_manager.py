@@ -96,7 +96,7 @@ class GitManager:
         # Write basic info to the report 
         with open(report_path, "w") as report:
             report.write("=" * 40 + "\n")
-            report.write("              Git Report      \n")
+            report.write("                  Git Report      \n")
             report.write(f"      Generated on :{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}     \n")
             report.write("=" * 40 + "\n\n")
 
@@ -104,9 +104,6 @@ class GitManager:
             last_commit = subprocess.run(["git", "log", "-1", "--pretty=format:%s"], capture_output=True, text=True).stdout
             last_commit_date = subprocess.run(["git", "log", "-1", "--pretty=format:%ci"], capture_output=True, text=True).stdout
             
-            # Get the branch name
-            branch_name = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output = True, text = True).stdout.strip() 
-
             # Get changed files 
             status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True).stdout
 
@@ -130,8 +127,9 @@ class GitManager:
                 for file in changed_files:
                     report.write(f"File Checked: {file}\n")
                     report.write("-" * 70 + "\n")
-                    diff_output = subprocess.run(["git", "diff", "--unified=0", file], capture_output = True, text = True).stdout
-                    if diff_output:
+                    diff_output = subprocess.run(["git", "diff", "--unified=0", file], capture_output=True, text=True).stdout
+                    if not diff_output:
+                        diff_output = subprocess.run(["git", "diff", "--cached", "--unified=0", file], capture_output=True, text=True).stdout
                         report.write(f"File: {file}\n")
                         report.write("=" * 50 + "\n") 
                         for line in diff_output.split("\n"):
@@ -155,5 +153,5 @@ if __name__ == "__main__":
     git_manager.add_remote_url()
     git_manager.create_branch()
     git_manager.add_to_staging(file_pattern = "src/git_manager.py") 
-    git_manager.commit_and_push("Updated project", force = True)
-    git_manager.generate_report()
+    git_manager.commit_and_push("Updated project", force = False)
+    # git_manager.generate_report()
