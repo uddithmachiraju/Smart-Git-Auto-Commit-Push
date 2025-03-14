@@ -23,6 +23,10 @@ class GitManager:
         self.init = os.path.exists(".git")  # Check if Git is initialized
         logging.info(f"Loaded configuration from {config_path}")
 
+        self.initialize_git()
+        self.add_remote_url()
+        self.create_branch()
+
     def load_config(self, file_path):
         """Load configuration from JSON file."""
         with open(file_path, "r") as file:
@@ -95,10 +99,10 @@ class GitManager:
 
         # Write basic info to the report 
         with open(report_path, "w") as report:
-            report.write("=" * 40 + "\n")
+            report.write("=" * 46 + "\n")
             report.write("                  Git Report      \n")
             report.write(f"      Generated on :{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}     \n")
-            report.write("=" * 40 + "\n\n")
+            report.write("=" * 46 + "\n\n")
 
             # Get the last commit and data 
             last_commit = subprocess.run(["git", "log", "-1", "--pretty=format:%s"], capture_output=True, text=True).stdout
@@ -149,9 +153,6 @@ class GitManager:
 
 if __name__ == "__main__":
     git_manager = GitManager(config_path = "config.json") 
-    git_manager.initialize_git()
-    git_manager.add_remote_url()
-    git_manager.create_branch()
     git_manager.add_to_staging(file_pattern = "src/git_manager.py") 
     git_manager.commit_and_push("Updated project", force = False)
     # git_manager.generate_report()
