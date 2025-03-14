@@ -153,6 +153,6 @@ class GitManager:
 
 if __name__ == "__main__":
     git_manager = GitManager(config_path = "config.json") 
-    git_manager.add_to_staging(file_pattern = "src/git_manager.py") 
+    git_manager.add_to_staging()  
     git_manager.commit_and_push("Updated project", force = False)
     # git_manager.generate_report()

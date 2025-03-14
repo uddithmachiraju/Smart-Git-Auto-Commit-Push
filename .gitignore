@@ -1,3 +1,5 @@
 venv/
 logs/
 reports/
+dist/
+*smart_git.egg-info/
